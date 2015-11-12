@@ -54,10 +54,31 @@ main = ->
 getReadmes = (repos) ->
   repos = sortBy repos, 'name'
   Promise.map repos, (repo) ->
-    uri = (sample RAW_GITHUB_SOURCES)(repo.name, 'README.md')
+    source = 0
+    uri = RAW_GITHUB_SOURCES[source](repo.name, 'README.md')
     request {uri}
     .then (readmeText) -> repo.readmeText = readmeText
-    .error (err) -> console.error [".error:", uri, err].join("\n")
+    .error (err) ->
+      console.error [".error:", uri, err].join("\n")
+      if err.message.indexOf 'StatusCodeError: 404' isnt -1
+        log "Retrying..."
+        getReadme ++source
+    # githubusercontent
+    # StatusCodeError: 404 - Not Found
+    #
+    # rawgit:
+    # StatusCodeError: 404 - <!DOCTYPE html>
+    # <html lang="en">
+    # <meta charset="utf-8">
+    # <title>404 Not Found</title>
+    #
+    # <h1>404 Not Found</h1>
+    # <p>I dunno what you expected, but it ain't here.</p>
+    #
+    # githack:
+    # RequestError: TypeError: Failed to fetch [empty repo]
+    # [cors error on missing readme]
+
     .catch (err) -> console.error [".catch:", uri, err].join("\n")
   .then -> repos
 
