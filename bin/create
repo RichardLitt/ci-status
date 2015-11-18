@@ -1,0 +1,6 @@
+#!/usr/bin/env coffee
+
+Matrix = require '../src/matrix'
+
+matrix = new Matrix
+matrix.create().then (html) -> console.log html
